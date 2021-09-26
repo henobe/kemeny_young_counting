@@ -1,4 +1,5 @@
-library("votesys")
+#!/usr/bin/env Rscript
+library(votesys)
 
 # Assumptions:
 # - ballot contains only numbers as candidate names
@@ -28,14 +29,19 @@ make_preference_matrix_from_ballot <- function(ballot, n_candidates) {
   summary_matrix
 }
 
+args = commandArgs(trailingOnly=TRUE)
+votefile <- args[[1]]
+n_candidates <- as.numeric(args[[2]])
 
-n_candidates <- 8
-
-summary_matrix <- list("4-8-67-12-3-5", "6-7-5-34-2-18") |>
+summary_matrix <- votefile |>
+  readLines() |>
+  as.list() |>
   lapply(make_preference_matrix_from_ballot, n_candidates) |>
   Reduce(f = `+`)
 
 colnames(summary_matrix) <- seq(1:n_candidates)
 rownames(summary_matrix) <- seq(1:n_candidates)
 
-cdc_kemenyyoung(summary_matrix)
+# Votesys implements counting with a limit of 8 candidates
+result <- votesys::cdc_kemenyyoung(summary_matrix)
+paste("Winner is", result$winner)
